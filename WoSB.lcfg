@@ -1,0 +1,31 @@
+# Запускать 1 копию игры. (Убивает прочие копии при запуске.)
+onerun=1
+
+# Параметры игры
+#_gamedir="${HOME}/Games/WoSB"
+_gameexe="WorldOfSeaBattleClient.exe"
+
+# Компоненты необходимые для игры. Ставятся через winetriks
+#_wt_components="dotnet40 dotnet40_kb2468871 xna40 faudio"
+_wt_components="xna40"
+
+# Настройки dll
+# dll["<имя библиотеки>"]="<режим работы>"
+# режим работы: builtin|native|default|disabled
+#dll["winegstreamer"]="disabled"
+#dll["quartz"]="builtin"
+
+
+WINEESYNC=1
+
+
+archname="save${_gamename}"
+
+save(){
+    tar -caf "${work_dir}/${archname}.tgz" -C "${WINEPREFIX}/drive_c/users/${USER}/AppData/Roaming/" "Wosb"
+}
+
+load(){
+    tar -xaf "${work_dir}/${archname}.tgz" -C "${WINEPREFIX}/drive_c/users/${USER}/AppData/Roaming/"
+}
+

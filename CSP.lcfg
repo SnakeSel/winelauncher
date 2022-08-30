@@ -1,0 +1,20 @@
+# Параметры игры
+#_gamename="CSP"
+#_gamedir="${HOME}/Games/CSP"
+_gameexe="Maelstrom.exe"
+#_gameexe="Config.exe"
+
+# Компоненты необходимые для игры. Ставятся через winetriks
+_wt_components="d3dx9 vcrun2019 d3dcompiler_43"
+
+WINEESYNC=1
+
+archname="save${_gamename}"
+
+save(){
+    tar -caf "${work_dir}/${archname}.tgz" -C "${_gamedir}" "SAVE"
+}
+
+load(){
+    tar -xaf "${work_dir}/${archname}.tgz" -C "${_gamedir}" "SAVE"
+}
