@@ -35,4 +35,6 @@
 Доступны настройки для игр:
  - CSP.lcfg [Corsairs Ship Pack](https://discord.gg/dmYPfdUq9d)
  - WoSB.lcfg [WorldofSeaBattle](https://www.worldofseabattle.com)
+ - Sailwind.lcfg [Sailwind](https://rawlionworkshop.com/sailwind/)
+
 

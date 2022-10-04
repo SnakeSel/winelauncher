@@ -1,0 +1,21 @@
+# lib32-openal
+
+# Параметры игры
+_gameexe="Sailwind.exe"
+
+# Компоненты необходимые для игры. Ставятся через winetriks
+_wt_components="d3dx11_43 vcrun2019"
+
+WINEESYNC=1
+
+archname="save${_gamename}"
+_saveDir="${WINEPREFIX}/drive_c/users/${USER}/AppData/LocalLow/Raw Lion Workshop/"
+
+save(){
+    tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --exclude="*.log" "Sailwind"
+}
+
+load(){
+    mkdir -p "${_saveDir}"
+    tar -xaf "${work_dir}/${archname}.tgz" -C "${_saveDir}"
+}
