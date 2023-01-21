@@ -9,10 +9,11 @@ _wt_components="d3dx11_43 vcrun2019"
 WINEESYNC=1
 
 archname="save${_gamename}"
-_saveDir="${WINEPREFIX}/drive_c/users/${USER}/AppData/LocalLow/Raw Lion Workshop/"
+_saveDir="${WINEPREFIX}/drive_c/users/${USER}/AppData/LocalLow/Raw Lion Workshop/Sailwind"
 
 save(){
-    tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --exclude="*.log" "Sailwind"
+    #tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --exclude="*.log" "Sailwind"
+    find "${_saveDir}" -maxdepth 1 -type f -name "*.save" -printf "%P\0" | tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --null --files-from -
 }
 
 load(){
