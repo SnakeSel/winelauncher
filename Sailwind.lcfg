@@ -1,22 +1,28 @@
-# lib32-openal
-
 # Параметры игры
 _gameexe="Sailwind.exe"
 
 # Компоненты необходимые для игры. Ставятся через winetriks
-_wt_components="d3dx11_43 vcrun2019"
+#_wt_components="d3dx11_43 d3dcompiler_43"
 
 WINEESYNC=1
 
-archname="save${_gamename}"
 _saveDir="${WINEPREFIX}/drive_c/users/${USER}/AppData/LocalLow/Raw Lion Workshop/Sailwind"
 
 save(){
+    archname="save${_gamename}-$(date +%Y%m%d_%H%M)"
+
     #tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --exclude="*.log" "Sailwind"
+    #cd "${_saveDir}" || ls -1 *.save | tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --files-from -
     find "${_saveDir}" -maxdepth 1 -type f -name "*.save" -printf "%P\0" | tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --null --files-from -
+
+
 }
 
 load(){
     mkdir -p "${_saveDir}"
-    tar -xaf "${work_dir}/${archname}.tgz" -C "${_saveDir}"
+    bkupname=$(find ${work_dir} -maxdepth 1 -type f -iname "save${_gamename}*.tgz" | sort -r | head -n 1)
+    echo "Load save: $bkupname"
+    #tar -xaf "${work_dir}/${archname}.tgz" -C "${_saveDir}"
+    tar -xaf "${bkupname}" -C "${_saveDir}"
+
 }

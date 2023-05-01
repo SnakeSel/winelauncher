@@ -10,7 +10,7 @@
 #
 # sudo winetricks --self-update
 
-version=20220830
+version=20230501
 
 #### NOT EDIT ##############
 script_name=${0##*/}
@@ -147,6 +147,20 @@ createwineprefix(){
     if [ "${ptch}" != "" ];then
         WINEPREFIX=${ptch}
     fi
+
+    if [ -f "${WINEPREFIX}/system.reg" ];then
+        while true; do
+            read -r -p "Remove ${WINEPREFIX}? (y\n):" yn
+            case $yn in
+                [Yy]* )
+                    rm -rf "${WINEPREFIX}"
+                    break;;
+                [Nn]* ) return 0;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    fi
+
     echo "Init wine to ${WINEPREFIX}"
 
     if ! [ -d "${WINEPREFIX}" ]; then
@@ -401,6 +415,7 @@ case "$1" in
     n) createwineprefix;;
     r) rungame;;
     cfg) env WINEARCH="${WINEARCH}" WINEDEBUG="-all" WINEPREFIX="${WINEPREFIX}" ${WINE} winecfg;;
+    reg) env WINEARCH="${WINEARCH}" WINEDEBUG="-all" WINEPREFIX="${WINEPREFIX}" ${WINE} regedit;;
     dxvk) install_dxvk;;
     adxvk) install_adxvk;;
     dll) override_dlls;;
