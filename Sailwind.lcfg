@@ -1,28 +1,25 @@
-# Параметры игры
 _gameexe="Sailwind.exe"
+_gameparams="-nolog"
 
-# Компоненты необходимые для игры. Ставятся через winetriks
 #_wt_components="d3dx11_43 d3dcompiler_43"
+
+WINE="${HOME}/.local/wine/wine-tkg-7.18/bin/wine64"
 
 WINEESYNC=1
 
-_saveDir="${WINEPREFIX}/drive_c/users/${USER}/AppData/LocalLow/Raw Lion Workshop/Sailwind"
+### Save\Load ###
+
+_saveGameDir="${WINEPREFIX}/drive_c/users/${USER}/AppData/LocalLow/Raw Lion Workshop/Sailwind"
+_saveFileFolder="${work_dir}/Save${_gamename}"
 
 save(){
     archname="save${_gamename}-$(date +%Y%m%d_%H%M)"
-
-    #tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --exclude="*.log" "Sailwind"
-    #cd "${_saveDir}" || ls -1 *.save | tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --files-from -
-    find "${_saveDir}" -maxdepth 1 -type f -name "*.save" -printf "%P\0" | tar -caf "${work_dir}/${archname}.tgz" -C "${_saveDir}" --null --files-from -
-
-
+    find "${_saveGameDir}" -maxdepth 1 -type f -name "*.save" -printf "%P\0" | tar -caf "${_saveFileFolder}/${archname}.tgz" -C "${_saveDir}" --null --files-from -
 }
 
 load(){
-    mkdir -p "${_saveDir}"
-    bkupname=$(find ${work_dir} -maxdepth 1 -type f -iname "save${_gamename}*.tgz" | sort -r | head -n 1)
+    mkdir -p "${_saveGameDir}"
+    bkupname=$(find ${_saveFileFolder} -maxdepth 1 -type f -iname "save${_gamename}*.tgz" | sort -r | head -n 1)
     echo "Load save: $bkupname"
-    #tar -xaf "${work_dir}/${archname}.tgz" -C "${_saveDir}"
-    tar -xaf "${bkupname}" -C "${_saveDir}"
-
+    tar -xaf "${bkupname}" -C "${_saveGameDir}"
 }

@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -eu
 
 # Linux Wine Launcher
 # Script to simplify wine environment creation and run games.
@@ -10,12 +11,13 @@
 #
 # sudo winetricks --self-update
 
-version=20230501
+version=20230528
 
 #### NOT EDIT ##############
 script_name=${0##*/}
 # каталог в котором лежит скрипт
-work_dir=$(dirname $(readlink -e "$0"))
+#work_dir=$(dirname "$(readlink -e "$0")")
+work_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
 #DEFAULT_CONFIG_BEGIN
 # show debug msg
@@ -28,9 +30,10 @@ onerun=1
 _gamename="$(basename "${work_dir}")"
 _gameexe="game.exe"
 _gamedir="${work_dir}"
+_gameparams=""
 
-# Компоненты необходимые для игры. Ставятся через winetriks
-#_wt_components="xna40"
+# Компоненты необходимые для игры (через пробел). Ставятся через winetriks
+_wt_components=""
 
 # Настройки dll
 # dll["<имя библиотеки>"]="<режим работы>"
@@ -40,8 +43,8 @@ declare -A dll
 #dll["quartz"]="builtin"
 
 ## Параметры WINE
-#WINE="wine"
-WINE="${HOME}/.local/wine/wine-tkg/bin/wine64"
+WINE="wine"
+#WINE="${HOME}/.local/wine/wine-tkg/bin/wine64"
 WINEPREFIX="${HOME}/.local/winepfx/${_gamename}/"
 
 # win64 | win32
@@ -175,11 +178,20 @@ createwineprefix(){
     fi
 
     # install compoments
-    if [ ${#_wt_components[@]} -ne 0 ]; then
+    if [ ${#_wt_components[*]} -ne 0 ]; then
         type winetricks >/dev/null 2>&1 || { echo >&2 "[Warn] No winetricks found.  Aborting."; return; }
 
         echo "Install components"
-        env WINEARCH="${WINEARCH}" WINEDEBUG="-all" WINEPREFIX="${WINEPREFIX}" WINE="${WINE}" winetricks -q ${_wt_components}
+        #env WINEARCH="${WINEARCH}" WINEDEBUG="-all" WINEPREFIX="${WINEPREFIX}" WINE="${WINE}" winetricks -q "${_wt_components}"
+
+        local totalDep=${#_wt_components[*]}
+        local i=0
+        for dep in "${_wt_components[@]}"; do
+            if ! env WINEARCH="${WINEARCH}" WINEDEBUG="-all" WINEPREFIX="${WINEPREFIX}" WINE="${WINE}" winetricks -q "$dep";then
+                echo "[Err] $dep not installed"
+            fi
+            ((++i))
+        done
     fi
 
     echo "Override dlls"
@@ -197,7 +209,6 @@ rungame(){
     if [ "${onerun:-0}" -eq 1 ]; then
         killall "${_gameexe}"
     fi
-
     if [ "${debugging:-0}" -eq 1 ]; then
         local PARAM=(DXVK_HUD="devinfo,fps,version,memory,gpuload," DXVK_LOG_LEVEL="info")
         local WINEDEBUG="fixme-all,err+loaddll,err+dll,err+file,err+reg"
@@ -246,7 +257,7 @@ EOF
 
     cd "${_gamedir}" || { echo "[err] cd to ${_gamedir}";exit 1; }
     debug "env \"${PARAM[@]}\" WINEARCH=\"${WINEARCH}\" WINEDEBUG=\"${WINEDEBUG}\" WINEPREFIX=\"${WINEPREFIX}\" nohup ${WINE} ${_gameexe} &>${out} &"
-    env "${PARAM[@]}" WINEARCH="${WINEARCH}" WINEDEBUG="${WINEDEBUG}" WINEPREFIX="${WINEPREFIX}" nohup ${WINE} ${_gameexe} &>${out} &
+    env "${PARAM[@]}" WINEARCH="${WINEARCH}" WINEDEBUG="${WINEDEBUG}" WINEPREFIX="${WINEPREFIX}" nohup ${WINE} ${_gameexe} ${_gameparams} &>"${out}" &
     sleep 2
 
 }
@@ -346,7 +357,7 @@ install_adxvk(){
     echo "Extract tar.gz ..."
 
     if [ ! -s "${_gamedir}/${file_name}" ];then
-        echo "[ERR] dxvk not found. (${data_dir}/${file_name})"
+        echo "[ERR] dxvk not found. (${_gamedir}/${file_name})"
         read -r -p "Any key to exit"
         #return
         exit 1
@@ -376,7 +387,7 @@ version: $version
 
 game:\t${_gamename}
 dir:\t${_gamedir}
-exe:\t${_gameexe}
+exe:\t${_gameexe} ${_gameparams}
 
 wine:\t$WINE
 pfx:\t$WINEPREFIX
@@ -384,27 +395,28 @@ arch:\t$WINEARCH
 ESYNC:\t$WINEESYNC
 FSYNC:\t$WINEFSYNC
 "
-    if [ ${#_wt_components[@]} -ne 0 ]; then
-        echo "winetricks install: ${_wt_components[@]}"
+
+    if [ ${#_wt_components[*]} -ne 0 ];then
+        echo "winetricks install: ${_wt_components[*]}"
     fi
 
 }
 
 #####################################################################################
 debug "Start ${script_name}. version: ${version}"
+debug "${work_dir}"
 
 cfgname="${_gamename}.lcfg"
+
 # Загружаем настройки для игры
 if [[ -f "${work_dir}/${cfgname}" ]]; then
   debug "Loading config from ${work_dir}/${cfgname}"
   . "${work_dir}/${cfgname}"
 fi
 
-
-#Если параметр 1 не существует, запуск
-if [ -z "$1" ]
-then
-    if ! [ -d "${WINEPREFIX}" ]; then
+#Если запуск без параметров - запуск игры
+if [ "$#" -eq 0 ];then
+    if ! [ -d "${WINEPREFIX}" ];then
         createwineprefix
     fi
     rungame
