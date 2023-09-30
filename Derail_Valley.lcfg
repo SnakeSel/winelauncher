@@ -1,0 +1,35 @@
+# Параметры игры
+_gamename="Derail_Valley"
+_gameexe="DerailValley.exe"
+
+# Компоненты необходимые для игры. Ставятся через winetriks
+_wt_components=(d3dx11_43 d3dcompiler_43)
+
+debugging=0
+
+#WINE="${HOME}/.local/wine/wine-tkg/bin/wine64"
+
+WINEESYNC=0
+
+### Save\Load ###
+
+# For PortProton
+UNITYSAVEDIR="${HOME}/PortWINE/PortProton/prefixes/DEFAULT/drive_c/users/${USER}/AppData/LocalLow"
+# For wine launcher
+#UNITYSAVEDIR="${WINEPREFIX}/drive_c/users/${USER}/AppData/LocalLow"
+
+_saveGameDir="${UNITYSAVEDIR}/Altfuture/Derail Valley"
+_saveFileFolder="${work_dir}"
+
+save(){
+    archname="save${_gamename}-$(date +%Y%m%d_%H%M)"
+    tar -caf "${work_dir}/${archname}.tgz" -C "${_saveGameDir}" "Users"
+}
+
+load(){
+    mkdir -p "${_saveGameDir}"
+    bkupname=$(find ${_saveFileFolder} -maxdepth 1 -type f -iname "save${_gamename}*.tgz" | sort -r | head -n 1)
+    echo "Load save: $bkupname"
+    tar -xaf "${bkupname}" -C "${_saveGameDir}"
+}
+

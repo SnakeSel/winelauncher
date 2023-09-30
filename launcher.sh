@@ -11,13 +11,13 @@
 #
 # sudo winetricks --self-update
 
-version=20230528
+version=20230930
 
 #### NOT EDIT ##############
 script_name=${0##*/}
 # каталог в котором лежит скрипт
 #work_dir=$(dirname "$(readlink -e "$0")")
-work_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+work_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P) #"
 
 #DEFAULT_CONFIG_BEGIN
 # show debug msg
@@ -33,7 +33,8 @@ _gamedir="${work_dir}"
 _gameparams=""
 
 # Компоненты необходимые для игры (через пробел). Ставятся через winetriks
-_wt_components=""
+_wt_components=()
+
 
 # Настройки dll
 # dll["<имя библиотеки>"]="<режим работы>"
@@ -65,6 +66,7 @@ command:
     cfg  start winecfg
     dxvk install dxvk
     adxvk install dxvk-async
+    rndr Select what backend to use for wined3d
     desc create desktop entry
     exe execute exe file in wineprefix
     save save game config from wineprefix
@@ -130,6 +132,7 @@ _EOF_
 
     unset W_TMP
 }
+
 
 createwineprefix(){
     debug "wine: ${WINE}"
@@ -207,10 +210,12 @@ wineprefix created success!
 
 rungame(){
     if [ "${onerun:-0}" -eq 1 ]; then
+        echo "[One run] killall ${_gameexe}"
         killall "${_gameexe}"
+        echo "run game..."
     fi
     if [ "${debugging:-0}" -eq 1 ]; then
-        local PARAM=(DXVK_HUD="devinfo,fps,version,memory,gpuload," DXVK_LOG_LEVEL="info")
+        local PARAM=(DXVK_HUD="devinfo,fps,api,version,memory,gpuload," DXVK_LOG_LEVEL="info")
         local WINEDEBUG="fixme-all,err+loaddll,err+dll,err+file,err+reg"
         local out="${work_dir}/${_gamename}.log"
     else
@@ -402,6 +407,33 @@ FSYNC:\t$WINEFSYNC
 
 }
 
+render(){
+    clear
+    echo -e "Select what backend to use for wined3d\n"
+    PS3='render: '
+    select opt in "gl" "vulkan" "gdi" "Cancel"
+    do
+    case $opt in
+        "gl")
+            env WINEARCH="${WINEARCH}" WINEPREFIX="${WINEPREFIX}" WINE="${WINE}" winetricks renderer=gl
+            break;;
+        "vulkan")
+            env WINEARCH="${WINEARCH}" WINEPREFIX="${WINEPREFIX}" WINE="${WINE}" winetricks renderer=vulkan
+            break;;
+        "gdi")
+            env WINEARCH="${WINEARCH}" WINEPREFIX="${WINEPREFIX}" WINE="${WINE}" winetricks renderer=gdi
+            break;;
+        "Cancel")
+            #break
+            clear
+            exit 0
+            ;;
+        *) echo invalid option;;
+    esac
+    done
+
+}
+
 #####################################################################################
 debug "Start ${script_name}. version: ${version}"
 debug "${work_dir}"
@@ -435,6 +467,7 @@ case "$1" in
     exe) install_exe;;
     save) save;;
     load) load;;
+    rndr) render;;
     v) show_version;;
     *) help;;
 esac

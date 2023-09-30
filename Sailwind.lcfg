@@ -1,11 +1,11 @@
 _gameexe="Sailwind.exe"
 _gameparams="-nolog"
 
-#_wt_components="d3dx11_43 d3dcompiler_43"
+#_wt_components="(d3dx11_43 d3dcompiler_43)"
 
 WINE="${HOME}/.local/wine/wine-tkg-7.18/bin/wine64"
 
-WINEESYNC=1
+WINEESYNC=0
 
 ### Save\Load ###
 
